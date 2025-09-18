@@ -4,5 +4,4 @@ export interface IRenderer {
   getSVG(): SVGSVGElement;
   getOptions(): ParsedInfographicOptions;
   render(): SVGSVGElement;
-  postRender(): void;
 }

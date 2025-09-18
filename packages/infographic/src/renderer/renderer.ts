@@ -1,5 +1,6 @@
 import { ElementTypeEnum } from '../constants';
 import type { ParsedInfographicOptions } from '../options';
+import type { ParsedPadding } from '../types';
 import {
   getDatumByIndexes,
   getItemIndexes,
@@ -35,6 +36,7 @@ import {
   renderSVG,
   renderText,
 } from './composites';
+import { loadFonts } from './fonts';
 import type { IRenderer } from './types';
 import { getPaletteColor } from './utils';
 
@@ -65,13 +67,31 @@ export class Renderer implements IRenderer {
     if (this.rendered) return svg;
 
     renderTemplate(svg, this.options);
+
+    svg.style.visibility = 'hidden';
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node === svg || node.contains(svg)) {
+            // post render
+            setView(this.template, this.options);
+            loadFonts(this.template);
+
+            // disconnect observer
+            observer.disconnect();
+            svg.style.visibility = '';
+          }
+        });
+      });
+    });
+
+    observer.observe(document, {
+      childList: true,
+      subtree: true,
+    });
+
     this.rendered = true;
     return svg;
-  }
-
-  postRender() {
-    this.rendered = false;
-    setView(this.template, this.options);
   }
 }
 
@@ -222,10 +242,11 @@ interface SVGPaddingOptions {
 
 function setSVGPadding(
   svg: SVGSVGElement,
-  padding: [number, number, number, number],
+  padding: ParsedPadding,
   options: SVGPaddingOptions = {},
 ): boolean {
-  const { preserveAspectRatio = true } = options;
+  const { preserveAspectRatio = false } = options;
+
   if (!svg.isConnected) return false;
 
   try {
@@ -236,7 +257,6 @@ function setSVGPadding(
       return false;
     }
     const [widthBaseVal, heightBaseVal] = getSizeBaseVal(svg);
-
     const svgWidth = widthBaseVal || svg.clientWidth || 0;
     const svgHeight = heightBaseVal || svg.clientHeight || 0;
 
@@ -246,21 +266,25 @@ function setSVGPadding(
     const effectiveHeight =
       svgHeight || (parentElement ? parentElement.clientHeight : 150);
 
-    const scaleX = bbox.width / effectiveWidth;
-    const scaleY = bbox.height / effectiveHeight;
-
     let viewBoxPadding: number[];
 
-    if (preserveAspectRatio) {
-      const scale = Math.max(scaleX, scaleY);
-      viewBoxPadding = padding.map((p) => p * scale);
+    if (effectiveWidth > 0 && effectiveHeight > 0) {
+      const scaleX = bbox.width / effectiveWidth;
+      const scaleY = bbox.height / effectiveHeight;
+
+      if (preserveAspectRatio) {
+        const scale = Math.max(scaleX, scaleY);
+        viewBoxPadding = padding.map((p) => p * scale);
+      } else {
+        viewBoxPadding = [
+          padding[0] * scaleY,
+          padding[1] * scaleX,
+          padding[2] * scaleY,
+          padding[3] * scaleX,
+        ];
+      }
     } else {
-      viewBoxPadding = [
-        padding[0] * scaleY,
-        padding[1] * scaleX,
-        padding[2] * scaleY,
-        padding[3] * scaleX,
-      ];
+      viewBoxPadding = [...padding];
     }
 
     const newViewBox = [
@@ -270,7 +294,6 @@ function setSVGPadding(
       bbox.height + viewBoxPadding[0] + viewBoxPadding[2],
     ].join(' ');
 
-    // 设置新的 viewBox
     svg.setAttribute('viewBox', newViewBox);
 
     return true;

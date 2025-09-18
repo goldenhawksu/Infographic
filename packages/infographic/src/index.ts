@@ -1,3 +1,5 @@
-export * from './generator';
-export type * from './types';
 export * from '@antv/infographic-jsx';
+export * from './generator';
+export * from './renderer';
+export type * from './types';
+export { parseSVG } from './utils';
