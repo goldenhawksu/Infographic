@@ -12,21 +12,22 @@ export const ItemLabel = ({
   children = 'Item Label',
   ...props
 }: ItemLabelProps) => {
-  const defaultProps: TextProps = {
+  const finalProps: TextProps = {
     fontSize: 18,
     fontWeight: 'bold',
     fill: '#000',
     width: 100,
-    height: 26,
     lineHeight: 1.4,
     children,
     backgroundColor: 'rgba(199, 207, 145, 0.1)',
+    ...props,
   };
+
+  finalProps.height ??= Math.ceil(
+    +finalProps.lineHeight! * +finalProps.fontSize!,
+  );
+
   return (
-    <Text
-      {...defaultProps}
-      {...props}
-      id={`item-${getItemKeyFromIndexes(indexes)}-label`}
-    />
+    <Text {...finalProps} id={`item-${getItemKeyFromIndexes(indexes)}-label`} />
   );
 };
