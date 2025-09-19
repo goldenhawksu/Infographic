@@ -6,8 +6,9 @@ import {
   TemplateOptions,
   Title,
 } from '../designs';
-import { getTheme, type ThemeConfig } from '../themes';
-import { parsePadding } from '../utils';
+import { getPaletteColor } from '../renderer';
+import { generateThemeColors, getTheme, type ThemeConfig } from '../themes';
+import { isDarkColor, parsePadding } from '../utils';
 import type { InfographicOptions, ParsedInfographicOptions } from './types';
 
 export function parseOptions(
@@ -38,7 +39,7 @@ export function parseOptions(
     container: parsedContainer as HTMLElement,
     padding: parsePadding(padding),
     template,
-    design: parseDesign({ ...parsedTemplate, ...design }),
+    design: parseDesign({ ...parsedTemplate, ...design }, options),
     theme,
     themeConfig: parseTheme(theme, themeConfig),
   };
@@ -52,12 +53,13 @@ function normalizeWithType<T extends { type: string }>(obj: string | T): T {
 
 function parseDesign(
   config: InfographicOptions['design'],
+  options: InfographicOptions,
 ): ParsedTemplateOptions {
   const { structure, title, item } = config || {};
   return {
     structure: parseDesignStructure(structure),
-    title: parseDesignTitle(title),
-    item: parseDesignItem(item),
+    title: parseDesignTitle(title, options),
+    item: parseDesignItem(item, options),
   };
 }
 
@@ -74,27 +76,45 @@ function parseDesignStructure(
 
 function parseDesignTitle(
   config: TemplateOptions['title'],
+  options: InfographicOptions,
 ): ParsedTemplateOptions['title'] {
   if (!config) throw new Error('Title is required in design or template');
   const { type, ...userProps } = normalizeWithType(config);
+
+  const { themeConfig } = options;
+  const background = themeConfig?.background || '#fff';
+  const themeColors = generateColors(background, background);
   // use default title for now
   return {
     component: (props: Parameters<typeof Title>[0]) =>
-      Title({ ...props, ...userProps }),
+      Title({ ...props, themeColors, ...userProps }),
   };
 }
 
 function parseDesignItem(
   config: TemplateOptions['item'],
+  options: InfographicOptions,
 ): ParsedTemplateOptions['item'] {
   if (!config) throw new Error('Item is required in design or template');
   const { type, ...userProps } = normalizeWithType(config);
   const item = getItem(type);
   if (!item) throw new Error(`Item ${type} not found`);
-  const { component, options } = item;
+  const { component, options: itemOptions } = item;
   return {
-    component: (props) => component({ ...props, ...userProps }),
-    options,
+    component: (props) => {
+      const { indexes } = props;
+      const { data, themeConfig } = options;
+      const background = themeConfig?.background || '#fff';
+
+      const themeColors = generateColors(
+        getPaletteColor(themeConfig?.palette, indexes, data?.items?.length) ||
+          '#1890ff',
+        background,
+      );
+
+      return component({ ...props, themeColors, ...userProps });
+    },
+    options: itemOptions,
   };
 }
 
@@ -104,4 +124,12 @@ function parseTheme(
 ): ThemeConfig {
   const base = theme ? getTheme(theme) || {} : {};
   return { ...base, ...themeConfig };
+}
+
+function generateColors(colorPrimary: string, background: string = '#fff') {
+  return generateThemeColors({
+    colorPrimary,
+    isDarkMode: isDarkColor(background),
+    colorBg: background,
+  });
 }

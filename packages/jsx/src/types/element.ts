@@ -1,5 +1,6 @@
 import type { SVGAttributes } from 'react';
 import type { JSXElement } from './jsx';
+import { Point } from './point';
 
 export interface BaseGeometryProps
   extends Omit<SVGAttributes<SVGElement>, 'children'> {
@@ -32,3 +33,6 @@ export interface TextProps extends BaseGeometryProps {
   children?: string | number;
 }
 export interface PathProps extends BaseGeometryProps {}
+export interface PolygonProps extends Omit<BaseGeometryProps, 'points'> {
+  points?: Point[];
+}

@@ -4,6 +4,7 @@ import {
   type BaseGeometryProps,
   type TextProps,
 } from '@antv/infographic-jsx';
+import type { ThemeColors } from '../../themes';
 import { FlexLayout } from '../layouts';
 
 export interface TitleProps extends BaseGeometryProps {
@@ -11,6 +12,8 @@ export interface TitleProps extends BaseGeometryProps {
   title?: string;
   desc?: string;
   descLineNumber?: number;
+
+  themeColors: ThemeColors;
 }
 
 export const Title = (props: TitleProps) => {
@@ -22,12 +25,13 @@ export const Title = (props: TitleProps) => {
     title = 'Title',
     desc = 'Sub Title',
     descLineNumber: subTitleLineNumber = 2,
+    themeColors,
   } = props;
   const MainTitle = (props: TextProps) => {
     const defaultProps: TextProps = {
       id: 'title',
       fontSize: 24,
-      fill: '#212121',
+      fill: themeColors.colorPrimaryText,
       width,
       height: 32,
       lineHeight: 1.4,
@@ -44,7 +48,7 @@ export const Title = (props: TitleProps) => {
     const defaultProps: TextProps = {
       id: 'desc',
       fontSize: 16,
-      fill: '#666666',
+      fill: themeColors.colorTextSecondary,
       width,
       alignHorizontal,
       lineHeight: 1.4,

@@ -1,13 +1,11 @@
-import { getItemIndexes } from '../../utils';
-import { getPalette, type Palette } from '../palettes';
+import { getPalette } from './registry';
+import type { Palette } from './types';
 
 export const getPaletteColor = (
   args: string | Palette = [],
-  id: string,
+  indexes: number[],
   total?: number,
 ) => {
-  const indexes = getItemIndexes(id);
-
   const palette = typeof args === 'string' ? getPalette(args) || [] : args;
   if (palette.length === 0) return;
 

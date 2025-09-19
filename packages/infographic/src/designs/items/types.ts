@@ -1,14 +1,18 @@
-import { ComponentType } from '@antv/infographic-jsx';
+import type { ComponentType } from '@antv/infographic-jsx';
+import type { ThemeColors } from '../../themes';
 import type { Data } from '../../types';
 
 export interface BaseItemProps {
-  id?: string;
-  indexKey: string;
-  datum: Data['items'][number];
   x?: number;
   y?: number;
-  positionH?: 'normal' | 'flipped' | 'center';
-  positionV?: 'normal' | 'flipped' | 'center';
+  id?: string;
+
+  indexes: number[];
+  data: Data;
+  datum: Data['items'][number];
+  themeColors: ThemeColors;
+  positionH?: 'normal' | 'center' | 'flipped';
+  positionV?: 'normal' | 'center' | 'flipped';
   [key: string]: any;
 }
 
