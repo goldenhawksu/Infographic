@@ -1,13 +1,22 @@
-import { parseDataURI } from '@/resource/utils/data-uri';
 import { DataURITypeEnum } from '@/renderer/constants';
+import { parseDataURI } from '@/resource/utils/data-uri';
 import { describe, expect, it } from 'vitest';
 
 describe('data-uri', () => {
   describe('parseDataURI', () => {
-    it('should return null for non-data URI strings', () => {
-      expect(parseDataURI('http://example.com/image.png')).toBeNull();
-      expect(parseDataURI('https://example.com/file.svg')).toBeNull();
-      expect(parseDataURI('regular-string')).toBeNull();
+    it('should return custom for non-data URI strings', () => {
+      expect(parseDataURI('http://example.com/image.png')).toEqual({
+        data: 'http://example.com/image.png',
+        type: 'custom',
+      });
+      expect(parseDataURI('https://example.com/file.svg')).toEqual({
+        data: 'https://example.com/file.svg',
+        type: 'custom',
+      });
+      expect(parseDataURI('regular-string')).toEqual({
+        data: 'regular-string',
+        type: 'custom',
+      });
     });
 
     it('should return null for malformed data URIs without comma', () => {
@@ -16,7 +25,8 @@ describe('data-uri', () => {
     });
 
     it('should parse base64 image data URIs', () => {
-      const dataUri = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+      const dataUri =
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
       const result = parseDataURI(dataUri);
 
       expect(result).toEqual({
@@ -67,7 +77,8 @@ describe('data-uri', () => {
     });
 
     it('should handle data URIs with multiple semicolon-separated parameters', () => {
-      const dataUri = 'data:image/png;charset=utf-8;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+      const dataUri =
+        'data:image/png;charset=utf-8;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
       const result = parseDataURI(dataUri);
 
       expect(result).toEqual({

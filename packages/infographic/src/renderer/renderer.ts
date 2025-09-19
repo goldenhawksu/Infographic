@@ -37,8 +37,8 @@ import {
   renderText,
 } from './composites';
 import { loadFonts } from './fonts';
+import { getPaletteColor } from './palettes';
 import type { IRenderer } from './types';
-import { getPaletteColor } from './utils';
 
 const upsert = (original: SVGElement, modified: SVGElement | null) => {
   if (original === modified) return;
@@ -104,7 +104,6 @@ function renderTemplate(svg: SVGSVGElement, options: ParsedInfographicOptions) {
 
 function fill(svg: SVGSVGElement, options: ParsedInfographicOptions) {
   const { themeConfig, data } = options;
-  const topLevelItemKeys = collectTopLevelItemKeys(svg);
 
   const traverse = (element: SVGElement) => {
     if (element instanceof SVGSVGElement) {
@@ -160,8 +159,8 @@ function fill(svg: SVGSVGElement, options: ParsedInfographicOptions) {
       const indexes = getItemIndexes(id);
       const primaryColor = getPaletteColor(
         themeConfig.palette,
-        id,
-        topLevelItemKeys.length,
+        getItemIndexes(id),
+        data.items.length,
       );
 
       if (isItemLabel(element) || isItemDesc(element) || isItemValue(element)) {
@@ -300,29 +299,4 @@ function setSVGPadding(
   } catch {
     return false;
   }
-}
-
-function collectItemKeys(svg: SVGSVGElement) {
-  const items = svg.querySelectorAll('g[id^="item-"]');
-  const ids = new Set<string>();
-  const indexes: number[][] = [];
-  items.forEach((item) => {
-    const id = item.id;
-    if (!ids.has(id)) {
-      ids.add(id);
-      const itemIndexes = getItemIndexes(id);
-      indexes.push(itemIndexes);
-    }
-  });
-  return indexes.sort((a, b) => a[0] - b[0]);
-}
-
-/**
- * 获取一级数据项 key, 用于分配色板
- */
-function collectTopLevelItemKeys(svg: SVGSVGElement) {
-  const itemKeys = collectItemKeys(svg);
-  return Array.from(new Set(itemKeys.map((keys) => keys[0]))).sort(
-    (a, b) => a - b,
-  );
 }
