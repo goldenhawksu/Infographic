@@ -16,15 +16,16 @@ registerResourceLoader(async (config) => {
   return loadSVGResource(str);
 });
 
-export const Infographic = ({ options }: { options: InfographicOptions }) => {
+export const Infographic = ({
+  options,
+}: {
+  options: string | InfographicOptions;
+}) => {
   const ref = useRef<HTMLDivElement>(null);
-  const instanceRef = useRef<Renderer>(null);
+  const instanceRef = useRef<Renderer | null>(null);
 
   useEffect(() => {
-    if (!options) return;
     if (!ref.current) return;
-    if (instanceRef.current && instanceRef.current.getOptions() === options)
-      return;
 
     const instance = new Renderer({
       container: ref.current,
@@ -37,15 +38,22 @@ export const Infographic = ({ options }: { options: InfographicOptions }) => {
           maxHeight: '80vh',
         },
       },
-      ...options,
     });
 
-    instance.render();
     instanceRef.current = instance;
     Object.assign(window, { infographic: instance });
+
     return () => {
       instance.destroy();
+      instanceRef.current = null;
     };
+  }, []);
+
+  useEffect(() => {
+    if (!options) return;
+    if (!instanceRef.current) return;
+
+    instanceRef.current.render(options);
   }, [options]);
 
   return <div ref={ref} style={{ width: '100%', height: '100%' }}></div>;

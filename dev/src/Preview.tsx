@@ -1,6 +1,6 @@
 import { getTemplate, getTemplates, ThemeConfig } from '@antv/infographic';
 import Editor from '@monaco-editor/react';
-import { Card, Checkbox, ColorPicker, Form, Select } from 'antd';
+import { Button, Card, Checkbox, ColorPicker, Form, Select } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { Infographic } from './Infographic';
 import { COMPARE_DATA, HIERARCHY_DATA, LIST_DATA, SWOT_DATA } from './data';
@@ -15,6 +15,8 @@ const DATA = {
   compare: { label: '对比数据', value: COMPARE_DATA },
   swot: { label: 'SWOT 数据', value: SWOT_DATA },
 } as const;
+const getDefaultDataString = (key: keyof typeof DATA) =>
+  JSON.stringify(DATA[key].value, null, 2);
 
 export const Preview = () => {
   // Get stored values with validation
@@ -97,24 +99,41 @@ export const Preview = () => {
   const templateConfig = useMemo(() => {
     const config = getTemplate(template);
     return config ? JSON.stringify(config, null, 2) : '{}';
-  }, [template]);
+  }, [template, data]);
 
-  // Auto-select appropriate data type based on template
-  useEffect(() => {
-    if (template.startsWith('hierarchy-')) {
-      setData('hierarchy');
-    } else if (template.startsWith('compare-')) {
-      setData('compare');
-    } else {
-      setData('list');
+  const applyTemplate = (nextTemplate: string) => {
+    const nextData = nextTemplate.startsWith('hierarchy-')
+      ? 'hierarchy'
+      : nextTemplate.startsWith('compare-')
+        ? 'compare'
+        : 'list';
+    setTemplate(nextTemplate);
+    if (nextData !== data) {
+      setData(nextData);
+      setCustomData(getDefaultDataString(nextData));
+      setDataError('');
     }
-  }, [template]);
+  };
 
-  // Update custom data when data type changes
-  useEffect(() => {
-    setCustomData(JSON.stringify(DATA[data].value, null, 2));
-    setDataError('');
-  }, [data]);
+  const handleCopyTemplate = async () => {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(template);
+        return;
+      }
+
+      const textarea = document.createElement('textarea');
+      textarea.value = template;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    } catch (error) {
+      console.warn('Failed to copy template name.', error);
+    }
+  };
 
   // Parse custom data
   const parsedData = useMemo(() => {
@@ -151,7 +170,7 @@ export const Preview = () => {
         }
 
         const nextTemplate = templates[nextIndex];
-        setTemplate(nextTemplate);
+        applyTemplate(nextTemplate);
         e.preventDefault();
       }
     };
@@ -191,12 +210,25 @@ export const Preview = () => {
               colon={false}
             >
               <Form.Item label="模板">
-                <Select
-                  showSearch
-                  value={template}
-                  options={templates.map((value) => ({ label: value, value }))}
-                  onChange={(value) => setTemplate(value)}
-                />
+                <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+                  <Select
+                    showSearch
+                    value={template}
+                    options={templates.map((value) => ({
+                      label: value,
+                      value,
+                    }))}
+                    onChange={(value) => applyTemplate(value)}
+                    style={{ flex: 1, minWidth: 0 }}
+                  />
+                  <Button
+                    size="small"
+                    onClick={handleCopyTemplate}
+                    style={{ flex: 'none' }}
+                  >
+                    复制
+                  </Button>
+                </div>
               </Form.Item>
               <Form.Item label="数据">
                 <Select
@@ -205,7 +237,11 @@ export const Preview = () => {
                     label,
                     value: key,
                   }))}
-                  onChange={(value) => setData(value)}
+                  onChange={(value) => {
+                    setData(value);
+                    setCustomData(getDefaultDataString(value));
+                    setDataError('');
+                  }}
                 />
               </Form.Item>
               <Form.Item label="主题">
