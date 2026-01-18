@@ -2,7 +2,12 @@ import {
   getSvgLoadPromise,
   trackSvgLoadPromise,
 } from '../../resource/load-tracker';
-import { join, normalizeFontWeightName, splitFontFamily } from '../../utils';
+import {
+  isNode,
+  join,
+  normalizeFontWeightName,
+  splitFontFamily,
+} from '../../utils';
 import { getFont, getFonts } from './registry';
 
 export function getFontURLs(font: string): string[] {
@@ -69,7 +74,7 @@ function trackFontPromise(
 }
 
 function isLinkLoaded(link: HTMLLinkElement): boolean {
-  if (link.dataset.infographicFontLoaded === 'true') return true;
+  if (link.getAttribute('data-infographic-font-loaded') === 'true') return true;
   try {
     return !!link.sheet;
   } catch {
@@ -91,7 +96,7 @@ function getFontLoadPromise(
 
   const promise = new Promise<void>((resolve) => {
     const done = () => {
-      link.dataset.infographicFontLoaded = 'true';
+      link.setAttribute('data-infographic-font-loaded', 'true');
       resolve();
     };
     link.addEventListener('load', done, { once: true });
@@ -140,6 +145,7 @@ export function loadFont(svg: SVGSVGElement, font: string) {
 }
 
 export function loadFonts(svg: SVGSVGElement) {
+  if (isNode) return;
   const fonts = getFonts();
   fonts.forEach((font) => loadFont(svg, font.fontFamily));
 }

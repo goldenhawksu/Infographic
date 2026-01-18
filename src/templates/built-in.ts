@@ -1,8 +1,10 @@
+import { compareQuadrantTemplates } from './compare-quadrant';
 import { hierarchyMindmapTemplates } from './hierarchy-mindmap';
 import { hierarchyStructureTemplates } from './hierarchy-structure';
 import { hierarchyTreeTemplates } from './hierarchy-tree';
 import { listZigzagTemplates } from './list-zigzag';
 import { registerTemplate } from './registry';
+import { relationDagreFlowTemplates } from './relation-dagre-flow';
 import { sequenceStairsTemplates } from './sequence-stairs';
 import type { TemplateOptions } from './types';
 import { wordCloudTemplate } from './word-cloud';
@@ -310,6 +312,16 @@ const BUILT_IN_TEMPLATES: Record<string, TemplateOptions> = {
       colorPrimary: '#1677ff',
     },
   },
+  'sequence-funnel-simple': {
+    design: {
+      title: 'default',
+      structure: { type: 'sequence-funnel' },
+      items: [{ type: 'simple', showIcon: false, usePaletteColor: true }],
+    },
+    themeConfig: {
+      palette: '#1677ff',
+    },
+  },
   'list-row-horizontal-icon-line': {
     design: {
       title: 'default',
@@ -336,20 +348,6 @@ const BUILT_IN_TEMPLATES: Record<string, TemplateOptions> = {
       title: 'default',
       structure: { type: 'list-sector', startAngle: -180, endAngle: 0 },
       items: [{ type: 'plain-text' }],
-    },
-  },
-  'quadrant-quarter-simple-card': {
-    design: {
-      title: 'default',
-      structure: { type: 'quadrant' },
-      items: [{ type: 'quarter-simple-card' }],
-    },
-  },
-  'quadrant-quarter-circular': {
-    design: {
-      title: 'default',
-      structure: { type: 'quadrant' },
-      items: [{ type: 'quarter-circular' }],
     },
   },
   'sequence-roadmap-vertical-plain-text': {
@@ -433,13 +431,6 @@ const BUILT_IN_TEMPLATES: Record<string, TemplateOptions> = {
     design: {
       title: 'default',
       structure: { type: 'list-row' },
-      items: [{ type: 'simple-illus' }],
-    },
-  },
-  'quadrant-simple-illus': {
-    design: {
-      title: 'default',
-      structure: { type: 'quadrant' },
       items: [{ type: 'simple-illus' }],
     },
   },
@@ -805,11 +796,13 @@ const BUILT_IN_TEMPLATES: Record<string, TemplateOptions> = {
       ],
     },
   },
+  ...compareQuadrantTemplates,
   ...hierarchyTreeTemplates,
   ...hierarchyMindmapTemplates,
   ...sequenceStairsTemplates,
   ...wordCloudTemplate,
   ...listZigzagTemplates,
+  ...relationDagreFlowTemplates,
   ...hierarchyStructureTemplates,
 };
 
